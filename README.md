@@ -10,11 +10,11 @@ Trong kỷ nguyên chuyển đổi số, việc huấn luyện mô hình trên d
 * **Thiếu minh bạch:** Sự phụ thuộc vào một máy chủ trung tâm không đáng tin cậy.
 * **Kiểm soát chất lượng:** Khó kiểm soát tính trung thực của các bản cập nhật từ Client.
 
-## Kiến trúc hệ thống (Proposed Architecture)
+## Kiến trúc hệ thống
 Hệ thống được chia thành 4 lớp cốt lõi:
 
 1. **Client (Local Training Layer):**
-   * Huấn luyện mô hình CNN cục bộ trên tập dữ liệu MNIST (phân phối Non-IID).
+   * Huấn luyện mô hình CNN cục bộ trên tập dữ liệu EMNIST (phân phối Non-IID).
    * Sử dụng **ZK Prover** để tạo bằng chứng ($\pi$) xác nhận quá trình huấn luyện đúng thuật toán.
 2. **Decentralized Storage Layer (IPFS):**
    * Lưu trữ các tệp trọng số mô hình có kích thước lớn để giảm tải cho Blockchain.
@@ -30,4 +30,11 @@ Hệ thống được chia thành 4 lớp cốt lõi:
 * **Adaptive Weight Adjustment:** Điều chỉnh trọng số thích nghi dựa trên chuẩn $L_2$ (Euclidean norm) để giảm ảnh hưởng của các cập nhật bất thường. 
 * **Federated Optimization:** Kết hợp **FedProx** tại Client để hạn chế *local drift* và **FedAdam** tại Server để tối ưu tốc độ hội tụ.
 * **Reputation-Reward:** Quản lý uy tín Client dựa trên mức độ đóng góp thực tế qua các vòng huấn luyện.
+
+## Công nghệ sủ dụng
+* **AI Framework**: **PyTorch** được dùng để xây dựng và huấn luyện mô hình CNN trên tập dữ liệu EMNIST
+* **Federated Learning Framework**: **Flower (flwr)** được sử dụng để điều phối quá trình học liên kết giữa Client và Server.
+* **Blockchain Development**: **Solidity** dùng để viết các **Smart Contract** thực hiện xác minh ZKP, quản lý uy tín (Reputation) và cơ chế thưởng phạt.
+
+
 
