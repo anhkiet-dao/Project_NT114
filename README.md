@@ -1,10 +1,33 @@
-Đây là đồ án chuyên ngành xây dựng một hệ thống Federated Learning (FL) an toàn, tích hợp:
+# Blockchain-based Federated Learning with ZKP
 
-🔗 Blockchain (Ethereum Private – PoA)
-🧠 Federated Learning (FedProx + FedAdam)
-📦 IPFS (lưu trữ phi tập trung)
-🔒 Zero-Knowledge Proof (ZKP)
-⭐ Cơ chế Reputation – Reward
-⚖️ Adaptive Weight Adjustment
+## Giới thiệu
 
-Mục tiêu là xác thực và kiểm soát cập nhật mô hình trong môi trường học phân tán, đặc biệt khi dữ liệu Non-IID và có nguy cơ poisoning attack.
+Đây là đồ án chuyên ngành xây dựng một hệ thống Federated Learning (FL) an toàn.
+
+Tích hợp:
+- Blockchain (Ethereum Private – PoA)
+- Federated Learning (FedProx + FedAdam)
+- IPFS
+- Zero-Knowledge Proof (ZKP)
+- Reputation – Reward
+
+Mục tiêu là xác thực và kiểm soát cập nhật mô hình trong môi trường phân tán.
+
+## Mục tiêu
+
+- Xây dựng hệ thống FL an toàn
+- Ngăn chặn update độc hại
+- Bảo vệ dữ liệu client
+- Tối ưu hội tụ Non-IID
+
+## Kiến trúc
+
+Client → IPFS → Blockchain → Server
+
+## Công nghệ
+
+- Flower
+- PyTorch
+- Ethereum
+- IPFS
+- Solidity
