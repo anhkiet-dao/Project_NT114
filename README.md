@@ -27,7 +27,7 @@ Hệ thống được chia thành 4 lớp cốt lõi:
 
 ## Các kỹ thuật then chốt
 * **Zero-Knowledge Proof (ZKP):** Chứng minh tính hợp lệ của cập nhật mà không làm lộ tham số nhạy cảm hoặc dữ liệu gốc.
-* **Adaptive Weight Adjustment:** Điều chỉnh trọng số thích nghi dựa trên chuẩn $L_2$ (Euclidean norm) để giảm ảnh hưởng của các cập nhật bất thường:
-  $$\gamma_{i}=exp(-\lambda\cdot\Delta_{i})$$ 
+* **Adaptive Weight Adjustment:** Điều chỉnh trọng số thích nghi dựa trên chuẩn $L_2$ (Euclidean norm) để giảm ảnh hưởng của các cập nhật bất thường. 
 * **Federated Optimization:** Kết hợp **FedProx** tại Client để hạn chế *local drift* và **FedAdam** tại Server để tối ưu tốc độ hội tụ.
 * **Reputation-Reward:** Quản lý uy tín Client dựa trên mức độ đóng góp thực tế qua các vòng huấn luyện.
+
