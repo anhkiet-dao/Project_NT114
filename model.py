@@ -10,7 +10,6 @@ class CNN(nn.Module):
         self.dropout1 = nn.Dropout2d(0.25)
         self.dropout2 = nn.Dropout(0.5)
 
-        # dummy input để tính size flatten
         dummy = torch.zeros(1, 1, 28, 28)
         dummy = self._forward_conv(dummy)
         flatten_size = dummy.view(1, -1).size(1)

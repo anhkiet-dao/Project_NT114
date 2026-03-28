@@ -1,4 +1,3 @@
-# ================== utils.py ==================
 import torch
 from torch.utils.data import DataLoader, TensorDataset, random_split
 import pickle
@@ -16,14 +15,13 @@ def load_client_data(client_id, split_type="non_iid", batch_size=32):
     else:
         raise ValueError(f"{path} cần dict với key 'images' và 'labels'")
 
-    if X.ndim == 2:  # [N,784]
+    if X.ndim == 2: 
         X = X.reshape(-1, 1, 28, 28)
-    elif X.ndim == 3:  # [N,28,28] -> thêm channel
+    elif X.ndim == 3:  
         X = X[:, None, :, :]
 
     X = torch.tensor(X, dtype=torch.float32)
 
-    # nhãn EMNIST ByClass: 0-61
     y_processed = []
     for label in y:
         if isinstance(label, str):

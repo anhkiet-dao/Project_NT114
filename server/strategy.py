@@ -15,8 +15,6 @@ from server.reputation import reputation_manager
 from server.defense import compute_delta, defense_scaling
 from server.fedadam import fedadam_update
 
-
-# tạo thư mục lưu history
 os.makedirs("history", exist_ok=True)
 
 
@@ -57,11 +55,10 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
 
             if not verified:
                 print(f"❌ ZKP FAILED for Client {cid}")
-                reputation_manager.update_reputation(cid, -1.0) # Phạt ngay lập tức
+                reputation_manager.update_reputation(cid, -1.0) 
                 rejected_this_round.append(cid)
                 continue
 
-            # Ghi nhận lên blockchain (nếu cần)
             verify_update(cid, server_round, True)
 
             clients_info.append({
@@ -93,12 +90,10 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
             cid = info["client_id"]
             res = eval_results[cid]
             
-            # Lọc client quá tệ
             if res["score"] < -0.4 or res["reputation"] < 0.2:
                 print(f"🚫 Skip client {cid} (Low Reputation: {res['reputation']:.2f})")
                 continue
 
-            # Tính trọng số tổng hợp
             weight = (res["reputation"] ** 1.5)
             grad = [p - g for p, g in zip(info["params"], self.global_weights)]
             
@@ -109,7 +104,6 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
 
         if not gradients: return None, {}
 
-        # Trung bình cộng có trọng số của các Gradients
         total_w = sum(final_weights) + 1e-8
         agg_grad = []
         for layer_idx in range(len(gradients[0])):
@@ -129,7 +123,6 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
         if not results:
             return None, {}
 
-        # Thu thập accuracy và loss từ kết quả trả về của các client
         accuracies = [r.metrics.get("accuracy", 0) for _, r in results]
         losses = [r.loss for _, r in results]
 
@@ -139,7 +132,6 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
         print(f"\n--- Round {server_round} Global Result ---")
         print(f"Average Accuracy: {avg_acc:.4f} | Average Loss: {avg_loss:.4f}")
 
-        # Cập nhật vào history global
         self.history["global"]["round"].append(server_round)
         self.history["global"]["accuracy"].append(avg_acc)
         self.history["global"]["loss"].append(avg_loss)
@@ -148,7 +140,6 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
             round_duration = time.time() - self.start_time
             self.history["global"]["round_time"].append(float(round_duration))
 
-        # ✅ THỰC HIỆN XUẤT FILE JSON TẠI ĐÂY
         try:
             with open("history/server_history_fedadam.json", "w", encoding="utf-8") as f:
                 json.dump(self.history, f, indent=4)

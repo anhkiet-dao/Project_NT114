@@ -2,10 +2,10 @@
 import torch
 import time
 
-DEVICE = torch.device("cpu")   # 👉 bạn không có GPU nên fix luôn
+DEVICE = torch.device("cpu")   
 MU = 0.001
 LR = 0.001
-EPOCHS = 2   # 👉 giảm để tăng tốc FL
+EPOCHS = 2   
 
 def train(model, trainloader, global_params, criterion):
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)

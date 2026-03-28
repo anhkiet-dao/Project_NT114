@@ -45,12 +45,10 @@ def update_reputation(client_id, score):
     rep_dict = load_reputation()
     cid = str(client_id)
 
-    # Lấy giá trị cũ, nếu chưa có thì dùng mặc định
     old_rep = float(rep_dict.get(cid, INITIAL_REPUTATION))
     
-    lr = 0.3 # Tốc độ cập nhật danh tiếng
+    lr = 0.3 
     
-    # SỬA LỖI TẠI ĐÂY: Tính toán dựa trên giá trị cũ (số), không phải dict
     new_rep = old_rep + lr * (score - old_rep)
     new_rep = float(np.clip(new_rep, 0.1, 1.0))
 
@@ -83,7 +81,6 @@ def evaluate_clients(global_weights, client_weights_dict, clients_info, rejected
         delta = delta_dict[cid]
         sim = sim_dict[cid]
         
-        # 1. Score thành phần
         score_sim = sim
         norm_delta = min(delta / mean_delta, 3.0)
         score_delta = 1.0 - (norm_delta / 3.0)
@@ -91,7 +88,6 @@ def evaluate_clients(global_weights, client_weights_dict, clients_info, rejected
         acc_norm = (info["test_acc"] - min_acc) / (max_acc - min_acc + 1e-8)
         loss_norm = (info["test_loss"] - min_loss) / (max_loss - min_loss + 1e-8)
         
-        # 2. Tổng hợp
         combined_score = (0.4 * score_sim) + (0.3 * score_delta) + (0.3 * acc_norm) - (0.2 * loss_norm)
         
         status = "normal"

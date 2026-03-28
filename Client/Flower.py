@@ -1,4 +1,3 @@
-# ================== FlowerClient.py ==================
 import flwr as fl
 import torch
 import torch.nn as nn
