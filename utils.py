@@ -38,7 +38,17 @@ def load_client_data(client_id, split_type="non_iid", batch_size=32):
     test_size = len(dataset) - train_size
     generator = torch.Generator().manual_seed(42)
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size], generator=generator)
-    trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    testloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    trainloader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=2
+    )
+    testloader = DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=2
+    )
 
     return trainloader, testloader

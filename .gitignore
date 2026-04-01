@@ -31,5 +31,5 @@ Thumbs.db
 # ===== IDE =====
 .vscode/
 .idea/
-./build/
-./reputation.json
+.build/
+.models/
