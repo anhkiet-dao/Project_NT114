@@ -4,8 +4,8 @@ import time
 
 DEVICE = torch.device("cpu")   
 MU = 0.001
-LR = 0.001
-EPOCHS = 2   
+LR = 0.0005
+EPOCHS = 4 
 
 def train(model, trainloader, global_params, criterion):
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
@@ -33,10 +33,11 @@ def train(model, trainloader, global_params, criterion):
             # ==============================
             # 🔥 FEDPROX (giảm tần suất + vector hóa)
             # ==============================
-            if batch_idx % 10 == 0:
-                local_vector = torch.cat([p.view(-1) for p in model.parameters()])
-                prox_term = torch.norm(local_vector - global_vector) ** 2
-                loss = loss + (MU / 2) * prox_term
+            prox_term = 0.0
+            for w, w_t in zip(model.parameters(), global_params):
+                prox_term += torch.sum((w - w_t) ** 2)
+
+            loss = loss + (MU / 2) * prox_term
 
             loss.backward()
             optimizer.step()

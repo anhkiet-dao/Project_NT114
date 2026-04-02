@@ -94,8 +94,10 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
                 print(f"🚫 Skip client {cid} (Low Reputation: {res['reputation']:.2f})")
                 continue
 
-            weight = (res["reputation"] ** 1.5)
+            # weight = (res["reputation"] ** 1.5)
+            weight = np.sqrt(res["reputation"])
             grad = [p - g for p, g in zip(info["params"], self.global_weights)]
+
             
             gradients.append(grad)
             final_weights.append(weight)
@@ -108,6 +110,7 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
         agg_grad = []
         for layer_idx in range(len(gradients[0])):
             layer_avg = sum(g[layer_idx] * w for g, w in zip(gradients, final_weights)) / total_w
+            layer_avg = np.clip(layer_avg, -1, 1)
             agg_grad.append(layer_avg)
 
         # ===== BƯỚC 4: CẬP NHẬT ADAM =====

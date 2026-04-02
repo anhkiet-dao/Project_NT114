@@ -25,13 +25,18 @@ def fedadam_update(global_weights, gradients):
     for i in range(len(gradients)):
         g = gradients[i]
 
+        # ✅ chống nổ gradient
+        g = np.clip(g, -1.0, 1.0)
+
         fedadam.m[i] = BETA1 * fedadam.m[i] + (1 - BETA1) * g
         fedadam.v[i] = BETA2 * fedadam.v[i] + (1 - BETA2) * (g ** 2)
 
         m_hat = fedadam.m[i] / (1 - BETA1 ** fedadam.t)
         v_hat = fedadam.v[i] / (1 - BETA2 ** fedadam.t)
 
+        # ✅ FIX QUAN TRỌNG
         new_w = global_weights[i] + LR * m_hat / (np.sqrt(v_hat) + EPS)
+
         new_weights.append(new_w)
 
     return new_weights

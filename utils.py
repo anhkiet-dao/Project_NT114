@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, TensorDataset, random_split
 import pickle
 import numpy as np
 
-def load_client_data(client_id, split_type="non_iid", batch_size=32):
+def load_client_data(client_id, split_type="non_iid", batch_size=64):
     path = f"data_new/{split_type}/client_{client_id}.pkl"
 
     with open(path, "rb") as f:
