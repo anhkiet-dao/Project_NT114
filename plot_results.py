@@ -187,7 +187,7 @@ if len(v_times) > 0:
     plt.close()
 
 # ==============================
-# 7️⃣ Rejected Clients (per round)
+# 7️⃣ Rejected Clients (Line Plot - Clean)
 # ==============================
 rejected = global_data.get("penalty_clients", [])
 
@@ -197,26 +197,33 @@ if len(rejected) > 0:
     y = []
 
     for i, round_clients in enumerate(rejected):
-        x.append(i + 1)                 # round
-        y.append(len(round_clients))    # số client bị reject
+        x.append(i + 1)
+        y.append(len(round_clients))
 
-    plt.figure(figsize=(8,5))
+    plt.figure(figsize=(9,5))
 
-    plt.bar(x, y)
+    # LINE + MARKER (không bị hiểu sai như bar + line)
+    plt.plot(x, y, marker='o', linewidth=2)
 
-    # highlight round có reject
+    # annotate giá trị
     for i, val in enumerate(y):
         if val > 0:
-            plt.text(x[i], val, str(val), ha='center', color='red')
+            plt.text(x[i], val + 0.05, str(val),
+                     ha='center', fontsize=10, fontweight='bold')
 
-    plt.title("Rejected Clients per Round")
+    # chỉ hiển thị số nguyên trên trục Y
+    plt.yticks(range(0, max(y)+2))
+
+    plt.title("Malicious Client Detection Over Rounds", fontsize=14, fontweight='bold')
     plt.xlabel("Communication Round")
     plt.ylabel("Number of Rejected Clients")
+
+    plt.grid(axis='y', linestyle='--', alpha=0.6)
 
     plt.tight_layout()
     plt.savefig(f"{SAVE_DIR}/rejected_clients.png", dpi=300)
     plt.close()
-
+    
 # ==============================
 # 8️⃣ Global Accuracy + Loss
 # ==============================
