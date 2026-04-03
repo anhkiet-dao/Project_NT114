@@ -119,12 +119,40 @@ plt.tight_layout()
 plt.savefig(f"{SAVE_DIR}/loss_comparison.png", dpi=300)
 plt.close()
 
+# ==============================
+# 5️⃣ Accuracy Comparison
+# ==============================
+plt.figure(figsize=(8,5))
+
+plt.plot(rounds, global_data["accuracy"], linewidth=3, label="Global Accuracy")
+
+for cid, data in clients_data.items():
+
+    x, y = align_xy(data["round"], data["test_accuracy"])
+
+    plt.plot(
+        x,
+        y,
+        linestyle="--",
+        alpha=0.7,
+        label=f"Client {cid}"
+    )
+
+plt.title("Accuracy Comparison (Global vs Clients)")
+plt.xlabel("Communication Round")
+plt.ylabel("Accuracy")
+
+plt.legend()
+plt.tight_layout()
+plt.savefig(f"{SAVE_DIR}/accuracy_comparison.png", dpi=300)
+plt.close()
+
 # =====================================================
 # 🔐 ZKP SECURITY METRICS
 # =====================================================
 
 # =====================================================
-# 5️⃣ ZKP Verification Time (Bản vẽ lại "Nhìn là hiểu")
+# 6️⃣ ZKP Verification Time (Bản vẽ lại "Nhìn là hiểu")
 # =====================================================
 v_times = global_data.get("verification_time", [])
 rounds = global_data.get("round", [])
@@ -159,35 +187,38 @@ if len(v_times) > 0:
     plt.close()
 
 # ==============================
-# 6️⃣ Rejected Clients
+# 7️⃣ Rejected Clients (per round)
 # ==============================
-rejected = global_data.get("rejected_clients", [])
+rejected = global_data.get("penalty_clients", [])
 
 if len(rejected) > 0:
 
-    rejected_per_round = {}
+    x = []
+    y = []
 
-    for r in rejected:
-        r = int(r)
-        rejected_per_round[r] = rejected_per_round.get(r,0)+1
-
-    x = list(rejected_per_round.keys())
-    y = list(rejected_per_round.values())
+    for i, round_clients in enumerate(rejected):
+        x.append(i + 1)                 # round
+        y.append(len(round_clients))    # số client bị reject
 
     plt.figure(figsize=(8,5))
 
     plt.bar(x, y)
 
-    plt.title("Rejected Malicious Clients")
-    plt.xlabel("Client ID")
-    plt.ylabel("Number of Rejections")
+    # highlight round có reject
+    for i, val in enumerate(y):
+        if val > 0:
+            plt.text(x[i], val, str(val), ha='center', color='red')
+
+    plt.title("Rejected Clients per Round")
+    plt.xlabel("Communication Round")
+    plt.ylabel("Number of Rejected Clients")
 
     plt.tight_layout()
     plt.savefig(f"{SAVE_DIR}/rejected_clients.png", dpi=300)
     plt.close()
 
 # ==============================
-# 7️⃣ Global Accuracy + Loss
+# 8️⃣ Global Accuracy + Loss
 # ==============================
 plt.figure(figsize=(8,5))
 
@@ -204,7 +235,7 @@ plt.savefig(f"{SAVE_DIR}/global_performance.png", dpi=300)
 plt.close()
 
 # ==============================
-# 8️⃣ Client Reputation
+# 9️⃣ Client Reputation
 # ==============================
 plt.figure(figsize=(8,5))
 

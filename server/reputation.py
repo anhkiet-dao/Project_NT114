@@ -23,6 +23,15 @@ class ReputationManager:
         r = r - 0.1
         r = np.clip(r, REP_MIN, REP_MAX)
         self.reputation[client_id] = float(r)
+        
+    def update_reputation(self, client_id, delta):
+
+        r = self.get(client_id)
+
+        r = r + delta
+        r = np.clip(r, REP_MIN, REP_MAX)
+
+        self.reputation[client_id] = float(r)
 
 
 reputation_manager = ReputationManager()

@@ -1,49 +1,42 @@
-import random
 import numpy as np
 
-# ===== CONFIG =====
-TOTAL_CLIENTS = 5         
-FAULTY_PER_ROUND = (1, 2)  
+TOTAL_CLIENTS = 5
+LAMBDA = 1 
 
-# ===== GLOBAL CACHE (QUAN TRỌNG) =====
-FAULTY_MAP = {}
+LAST_FAULTY = set()
 
-
-# ===== CHỌN FAULTY CLIENT =====
 def get_faulty_clients(round_num):
+    global LAST_FAULTY
 
-    if round_num in FAULTY_MAP:
-        return FAULTY_MAP[round_num]
+    num_faulty = np.random.poisson(LAMBDA)
+    num_faulty = min(num_faulty, TOTAL_CLIENTS      )
 
-    num_faulty = random.randint(*FAULTY_PER_ROUND)
+    candidates = list(set(range(1, TOTAL_CLIENTS + 1)) - LAST_FAULTY)
 
-    faulty_clients = random.sample(
-        range(1, TOTAL_CLIENTS + 1),  # client_id bắt đầu từ 1
-        num_faulty
-    )
+    if len(candidates) < num_faulty:
+        candidates = list(range(1, TOTAL_CLIENTS + 1))
 
-    FAULTY_MAP[round_num] = faulty_clients
+    faulty_clients = list(np.random.choice(candidates, num_faulty, replace=False))
 
-    print(f"[Round {round_num}] Faulty clients: {faulty_clients}")
+    LAST_FAULTY = set(faulty_clients)
+
+    print(f"[Round {round_num}] Faulty clients: {faulty_clients} (Poisson λ={LAMBDA})")
 
     return faulty_clients
 
 
-# ===== CHECK CLIENT CÓ FAULTY KHÔNG =====
 def is_faulty_client(client_id, round_num):
 
     faulty_clients = get_faulty_clients(round_num)
 
     return client_id in faulty_clients
 
-
-# ===== CORRUPT PARAMETERS =====
 def corrupt_parameters(params):
 
     corrupted = []
 
     for p in params:
-        noise = np.random.normal(0, 1, p.shape)
+        noise = np.random.normal(0, 0.01, p.shape)
 
         corrupted.append(p + noise)
 

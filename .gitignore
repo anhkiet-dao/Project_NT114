@@ -34,4 +34,5 @@ Thumbs.db
 build/
 models/
 history/
+plots/
 reputation.json

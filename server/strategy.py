@@ -9,10 +9,11 @@ from flwr.common import parameters_to_ndarrays, ndarrays_to_parameters
 from blockchain import verify_update
 from reputation import evaluate_clients
 from zkp_utils import verify_proof
+from model import CNN
 
-from server.config import NUM_CLIENTS
+from server.config import NUM_CLIENTS, BASE_LAMBDA, MAX_LAMBDA
 from server.reputation import reputation_manager
-from server.defense import compute_delta, defense_scaling
+from server.defense import compute_delta
 from server.fedadam import fedadam_update
 
 os.makedirs("history", exist_ok=True)
@@ -25,27 +26,29 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
             min_fit_clients=NUM_CLIENTS,
             min_available_clients=NUM_CLIENTS
         )
+        
         self.start_time = None
         self.global_weights = None
         self.history = {
-            "global": {"round": [], "accuracy": [], "loss": [], "verification_time": [], "rejected_clients": [], "round_time": []},
+            "global": {"round": [], "accuracy": [], "loss": [], "verification_time": [], "penalty_clients": [], "round_time": []},
             "clients": {}
         }
 
     def aggregate_fit(self, server_round, results, failures):
         self.start_time = time.time()
-        if not results: return None, {}
+        if not results: 
+            return None, {}
 
         clients_info = []
         round_verify_times = []
-        rejected_this_round = []
+        penalty_clients = []
 
-        # ===== BƯỚC 1: XÁC THỰC ZKP =====
+        # ===== VERIFY ZKP =====
         for client, fit_res in results:
             metrics = fit_res.metrics
             cid = str(metrics["client_id"])
             params = parameters_to_ndarrays(fit_res.parameters)
-            proof = json.loads(metrics["proof"])
+            proof = json.loads(metrics.get("proof", "{}"))
 
             print(f"\nClient {cid} update received")
 
@@ -56,7 +59,7 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
             if not verified:
                 print(f"❌ ZKP FAILED for Client {cid}")
                 reputation_manager.update_reputation(cid, -1.0) 
-                rejected_this_round.append(cid)
+                # penalty_this_round.append(cid)
                 continue
 
             verify_update(cid, server_round, True)
@@ -69,55 +72,115 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
                 "train_time": metrics.get("train_time", 0)
             })
             
-        if not clients_info: return None, {}
-        if self.global_weights is None: self.global_weights = clients_info[0]["params"]
+        if not clients_info: 
+            return None, {}
+        
+        # ===== INITIALIZE GLOBAL MODEL =====
+        if self.global_weights is None: 
+            self.global_weights = clients_info[0]["params"]
 
-        # ===== BƯỚC 2: ĐÁNH GIÁ CHI TIẾT =====
-        client_weights_dict = {info["client_id"]: info["params"] for info in clients_info}
+        # ===== CLIENT EVALUATION =====
+        client_weights_dict = {info["client_id"]: 
+            info["params"] for info in clients_info}
         
         eval_results, Q1, Q3 = evaluate_clients(
             self.global_weights, 
             client_weights_dict, 
-            clients_info, 
-            rejected_clients=rejected_this_round
+            clients_info
         )
         
-        # ===== BƯỚC 3: TỔNG HỢP GRADIENT =====
+        # ===== IQR OUTLIER DETECTION =====
+        IQR = Q3 - Q1
+
+        lower = Q1 - 1.5 * IQR
+        upper = Q3 + 1.5 * IQR
+        
+        # ===== REWARD + GRADIENT =====
+
         gradients = []
         final_weights = []
-        
+        LAMBDA = min(MAX_LAMBDA, BASE_LAMBDA + server_round * 0.005)
+
         for info in clients_info:
             cid = info["client_id"]
             res = eval_results[cid]
-            
-            if res["score"] < -0.4 or res["reputation"] < 0.2:
-                print(f"🚫 Skip client {cid} (Low Reputation: {res['reputation']:.2f})")
+
+            reputation = res["reputation"]
+            score = res["score"]
+
+            # ===== SKIP CLIENT XẤU =====
+            if score < -0.4 or reputation < 0.2:
+                print(f"🚫 Skip client {cid} (score={score:.3f}, rep={reputation:.3f})")
+                penalty_clients.append(cid)
                 continue
 
-            # weight = (res["reputation"] ** 1.5)
-            weight = np.sqrt(res["reputation"])
-            grad = [p - g for p, g in zip(info["params"], self.global_weights)]
+            # ===== COMPUTE DELTA =====
+            delta = compute_delta(self.global_weights, info["params"])
 
+            # ===== IQR OUTLIER DEFENSE =====
+            if delta < lower or delta > upper:
+
+                print(f"⚠ Outlier Client {cid} (Δ={delta:.4f})")
+
+                reputation *= 0.7
+
+                penalty_clients.append(cid)
             
+            # ===== COMPUTE REWARD =====    
+            gamma = np.exp(-BASE_LAMBDA * delta)
+
+            reward = np.sqrt(reputation) * gamma
+            reward = np.clip(reward, 0.05, 1.5)
+
+            # ===== COMPUTE GRADIENT =====
+            grad = [
+                local_w - global_w
+                for local_w, global_w in zip(info["params"], self.global_weights)
+            ]
+
             gradients.append(grad)
-            final_weights.append(weight)
+            final_weights.append(reward)
 
-            self._update_client_history(cid, server_round, info, res["reputation"])
+            print(f"Client {cid} | reputation={reputation:.3f} | reward={reward:.3f}")
 
-        if not gradients: return None, {}
+            self._update_client_history(
+                cid, 
+                server_round, 
+                info, 
+                reputation
+            )
 
-        total_w = sum(final_weights) + 1e-8
+        if not gradients:
+            print("❌ No valid clients for aggregation")
+            return None, {}
+
+        # ===== WEIGHTED GRADIENT AGGREGATION =====
+        total_weight = sum(final_weights) + 1e-8
         agg_grad = []
+
         for layer_idx in range(len(gradients[0])):
-            layer_avg = sum(g[layer_idx] * w for g, w in zip(gradients, final_weights)) / total_w
+
+            layer_sum = sum(
+                grad[layer_idx] * weight
+                for grad, weight in zip(gradients, final_weights)
+            )
+
+            layer_avg = layer_sum / total_weight
+
             layer_avg = np.clip(layer_avg, -1, 1)
+
             agg_grad.append(layer_avg)
 
-        # ===== BƯỚC 4: CẬP NHẬT ADAM =====
-        self.global_weights = fedadam_update(self.global_weights, agg_grad)
+        # ===== FEDADAM UPDATE =====
+        self.global_weights = fedadam_update(
+            self.global_weights,
+            agg_grad
+        )
         
+        # ===== LOGGING =====
         if round_verify_times:
             self.history["global"]["verification_time"].append(float(np.mean(round_verify_times)))
+            self.history["global"]["penalty_clients"].append(penalty_clients)
 
         return ndarrays_to_parameters(self.global_weights), {}
     
@@ -126,8 +189,15 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
         if not results:
             return None, {}
 
-        accuracies = [r.metrics.get("accuracy", 0) for _, r in results]
-        losses = [r.loss for _, r in results]
+        accuracies = [
+            r.metrics.get("accuracy", 0) 
+            for _, r in results
+        ]
+        
+        losses = [
+            r.loss 
+            for _, r in results
+        ]
 
         avg_acc = float(np.mean(accuracies))
         avg_loss = float(np.mean(losses))
@@ -144,9 +214,12 @@ class SecureFLStrategy(fl.server.strategy.FedAvg):
             self.history["global"]["round_time"].append(float(round_duration))
 
         try:
-            with open("history/server_history_fedadam.json", "w", encoding="utf-8") as f:
+            with open("history/server_history_fedadam.json", 
+                      "w", 
+                      encoding="utf-8"
+            ) as f:
                 json.dump(self.history, f, indent=4)
-            # print(f"✅ History saved to history/server_history_fedadam.json")
+                
         except Exception as e:
             print(f"❌ Error saving history: {e}")
 
