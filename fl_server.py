@@ -1,6 +1,6 @@
 import flwr as fl
-from server.strategy import SecureFLStrategy
-from server.config import ROUNDS
+from FL_Server.strategy import SecureFLStrategy
+from FL_Server.config import ROUNDS
 
 def main():
 

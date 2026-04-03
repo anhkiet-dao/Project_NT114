@@ -1,5 +1,5 @@
 import numpy as np
-from server.config import LAMBDA_DEFENSE
+from FL_Server.config import LAMBDA_DEFENSE
 
 def flatten_weights(weights):
     return np.concatenate([w.flatten() for w in weights])

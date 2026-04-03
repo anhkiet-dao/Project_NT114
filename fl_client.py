@@ -1,6 +1,6 @@
 import sys
 import flwr as fl
-from Client.Flower import FlowerClient
+from FL_Client.Flower import FlowerClient
 
 if __name__ == "__main__":
 

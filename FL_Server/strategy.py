@@ -11,10 +11,10 @@ from reputation import evaluate_clients
 from zkp_utils import verify_proof
 from model import CNN
 
-from server.config import NUM_CLIENTS, BASE_LAMBDA, MAX_LAMBDA
-from server.reputation import reputation_manager
-from server.defense import compute_delta
-from server.fedadam import fedadam_update
+from FL_Server.config import NUM_CLIENTS, BASE_LAMBDA, MAX_LAMBDA
+from FL_Server.reputation import reputation_manager
+from FL_Server.defense import compute_delta
+from FL_Server.fedadam import fedadam_update
 
 os.makedirs("history", exist_ok=True)
 

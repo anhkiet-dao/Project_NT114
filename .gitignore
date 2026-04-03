@@ -35,4 +35,5 @@ build/
 models/
 history/
 plots/
+log/
 reputation.json

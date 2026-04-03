@@ -7,9 +7,9 @@ from utils import load_client_data
 from ipfs_utils import upload_to_ipfs
 from zkp_utils import generate_proof
 from blockchain import submit_update
-from Client.train import train
-from Client.evaluate import evaluate
-from Client.faulty import is_faulty_client, corrupt_parameters
+from FL_Client.train import train
+from FL_Client.evaluate import evaluate
+from FL_Client.faulty import is_faulty_client, corrupt_parameters
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
