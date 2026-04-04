@@ -3,7 +3,7 @@ import json
 from reputation import update_reputation
 
 w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:7545"))
-contract_address = "0xfbe7D52a72e801b3D3f29D9e63f61b7f1A5f1e2f"
+contract_address = "0x60a0819f722624A999323145bdA557C43c1D12c4"
 
 with open("build/contracts/Reputation.json", "r", encoding="utf-8") as f:
     contract_json = json.load(f)

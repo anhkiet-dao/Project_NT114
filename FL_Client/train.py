@@ -5,7 +5,7 @@ import time
 DEVICE = torch.device("cpu")   
 MU = 0.001
 LR = 0.0005
-EPOCHS = 1
+EPOCHS = 4
 
 torch.set_num_threads(8)       
 torch.set_num_interop_threads(4)

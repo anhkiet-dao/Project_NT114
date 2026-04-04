@@ -6,7 +6,7 @@ import numpy as np
 # ==============================
 # CONFIG
 # ==============================
-MODE = "non_iid"
+MODE = "iid"
 SAVE_DIR = f"plots/{MODE}"
 
 os.makedirs(SAVE_DIR, exist_ok=True)
