@@ -14,7 +14,7 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 # ==============================
 # Load JSON
 # ==============================
-with open("history/server_history_fedadam_iid.json", "r") as f:
+with open("history/server_history_fedadam.json", "r") as f:
     history = json.load(f)
 
 global_data = history["global"]

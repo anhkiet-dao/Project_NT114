@@ -11,7 +11,7 @@ def main():
         config=fl.server.ServerConfig(num_rounds=ROUNDS),
         strategy=strategy
     )
-
+    
 if __name__ == "__main__":
     print("Starting Federated Learning Server...")
     main()
