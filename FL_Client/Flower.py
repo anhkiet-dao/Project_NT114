@@ -31,6 +31,24 @@ class FlowerClient(fl.client.NumPyClient):
             for k, v in zip(self.model.state_dict().keys(), parameters)
         }
         self.model.load_state_dict(state_dict, strict=False)  # strict=False tránh lỗi checkpoint cũ
+        
+    # def fit(self, parameters, config):
+    #     self.set_parameters(parameters)
+
+    #     result = train(self.model, self.trainloader, None, self.criterion)
+
+    #     print(f"[Client {self.client_id}] Acc: {result['accuracy']:.4f} | Loss: {result['loss']:.4f}")
+
+    #     params = self.get_parameters({})
+
+    #     metrics = {
+    #         "client_id": self.client_id,
+    #         "train_time": result["time"],
+    #         "test_acc": result["accuracy"],
+    #         "test_loss": result["loss"],
+    #     }
+
+    #     return params, len(self.trainloader.dataset), metrics
 
     def fit(self, parameters, config):
         self.set_parameters(parameters)

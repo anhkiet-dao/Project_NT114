@@ -10,6 +10,36 @@ EPOCHS = 1
 torch.set_num_threads(8)       
 torch.set_num_interop_threads(4)
 
+# def train(model, trainloader, _, criterion):
+#     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+#     model.train()
+
+#     total_loss, correct, total = 0.0, 0, 0
+#     start_time = time.time()
+
+#     for _ in range(EPOCHS):
+#         for data, target in trainloader:
+#             data, target = data.to(DEVICE), target.to(DEVICE)
+
+#             optimizer.zero_grad()
+#             output = model(data)
+#             loss = criterion(output, target)
+
+#             loss.backward()
+#             optimizer.step()
+
+#             total_loss += loss.item()
+
+#             pred = torch.argmax(output, dim=1)
+#             correct += (pred == target).sum().item()
+#             total += target.size(0)
+
+#     return {
+#         "loss": total_loss / (len(trainloader) * EPOCHS),
+#         "accuracy": correct / total,
+#         "time": time.time() - start_time
+#     }
+
 def train(model, trainloader, global_params, criterion):
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     model.train()
