@@ -23,23 +23,7 @@ def align_xy(x, y):
     return x[:n], y[:n]
 
 # ==============================
-# 1️⃣ Global Accuracy
-# ==============================
-# plt.figure(figsize=(8,5))
-
-# plt.plot(rounds, global_data["accuracy"], marker="o", linewidth=2)
-
-# plt.title("Global Model Accuracy")
-# plt.xlabel("Communication Round")
-# plt.ylabel("Accuracy")
-# plt.ylim(0,1)
-
-# plt.tight_layout()
-# plt.savefig(f"{SAVE_DIR}/global_accuracy.png", dpi=300)
-# plt.close()
-
-# ==============================
-# 2️⃣ Train Time per Client
+# 1️⃣ Train Time per Client
 # ==============================
 plt.figure(figsize=(8,5))
 lines = []
@@ -63,7 +47,7 @@ plt.savefig(f"{SAVE_DIR}/train_time.png", dpi=300)
 plt.close()
 
 # ==============================
-# 3️⃣ Local Test Accuracy
+# 2️⃣ Local Test Accuracy
 # ==============================
 plt.figure(figsize=(8,5))
 
@@ -84,7 +68,6 @@ plt.xlabel("Communication Round")
 plt.ylabel("Accuracy")
 plt.ylim(0,1)
 
-# 👇 legend đúng thứ tự
 plt.legend(lines, labels)
 
 plt.tight_layout()
@@ -92,7 +75,7 @@ plt.savefig(f"{SAVE_DIR}/local_accuracy.png", dpi=300)
 plt.close()
 
 # ==============================
-# 4️⃣ Loss Comparison
+# 3️⃣ Loss Comparison
 # ==============================
 plt.figure(figsize=(8,5))
 
@@ -131,7 +114,7 @@ plt.savefig(f"{SAVE_DIR}/loss_comparison.png", dpi=300)
 plt.close()
 
 # ==============================
-# 5️⃣ Accuracy Comparison
+# 4️⃣ Accuracy Comparison
 # ==============================
 plt.figure(figsize=(8,5))
 
@@ -169,7 +152,7 @@ plt.savefig(f"{SAVE_DIR}/accuracy_comparison.png", dpi=300)
 plt.close()
 
 # ==============================
-# 7️⃣ Rejected Clients (Line Plot - Clean)
+# 5️⃣ Rejected Clients (Line Plot - Clean)
 # ==============================
 rejected = global_data.get("penalty_clients", [])
 TOTAL_CLIENTS = len(clients_data)
@@ -210,7 +193,7 @@ if len(rejected) > 0:
     plt.close()
     
 # ==============================
-# 8️⃣ Global Accuracy + Loss
+# 6️⃣ Global Accuracy + Loss
 # ==============================
 plt.figure(figsize=(8,5))
 
@@ -227,7 +210,7 @@ plt.savefig(f"{SAVE_DIR}/global_performance.png", dpi=300)
 plt.close()
 
 # ==============================
-# 9️⃣ Client Reputation
+# 7️⃣ Client Reputation
 # ==============================
 plt.figure(figsize=(8,5))
 lines = []
@@ -259,7 +242,7 @@ plt.savefig(f"{SAVE_DIR}/client_reputation.png", dpi=300)
 plt.close()
 
 # ==============================
-# 🔟 Convergence Speed
+# 8️⃣ Convergence Speed
 # ==============================
 
 acc = global_data["accuracy"]
