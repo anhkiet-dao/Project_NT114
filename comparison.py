@@ -226,7 +226,6 @@ plt.close()
 
 TOTAL_CLIENTS = 5
 
-# IID
 iid_penalty = iid["global"].get("penalty_clients", [])
 iid_penalty_count = [len(p) for p in iid_penalty]
 
@@ -242,28 +241,31 @@ noniid_valid_rate = 1 - noniid_rejected_rate
 
 plt.figure(figsize=(10,5))
 
-plt.plot(rounds_iid, iid_valid_rate,
-         marker="o", linewidth=2, label="IID Valid Rate")
+bar_width = 0.35
 
-plt.plot(rounds_iid, iid_rejected_rate,
-         marker="o", linestyle="--", label="IID Rejected Rate")
+x_iid = np.arange(len(rounds_iid))
+x_noniid = np.arange(len(rounds_noniid)) + bar_width
 
-plt.plot(rounds_noniid, noniid_valid_rate,
-         marker="s", linewidth=2, label="Non-IID Valid Rate")
+plt.bar(x_iid, iid_valid_rate, width=bar_width, label="IID Valid")
+plt.bar(x_iid, iid_rejected_rate, width=bar_width,
+        bottom=iid_valid_rate, label="IID Rejected")
 
-plt.plot(rounds_noniid, noniid_rejected_rate,
-         marker="s", linestyle="--", label="Non-IID Rejected Rate")
+plt.bar(x_noniid, noniid_valid_rate, width=bar_width, label="Non-IID Valid")
+plt.bar(x_noniid, noniid_rejected_rate, width=bar_width,
+        bottom=noniid_valid_rate, label="Non-IID Rejected")
 
-
-plt.title("Valid vs Rejected Update Rate")
+plt.title("Valid vs Rejected Update Rate (Stacked Bar)")
 plt.xlabel("Communication Round")
 plt.ylabel("Rate")
-plt.ylim(-0.05, 1.05)
+
+plt.xticks(x_iid + bar_width / 2, rounds_iid)
+
+plt.ylim(0, 1.05)
 
 plt.legend(loc="upper left", bbox_to_anchor=(1.02, 1))
 plt.tight_layout()
 
-plt.savefig(f"{SAVE_DIR}/compare_update_rate.png", dpi=300)
+plt.savefig(f"{SAVE_DIR}/compare_update_rate_bar.png", dpi=300)
 plt.close()
 
 # ======================================================
@@ -292,7 +294,7 @@ plt.plot(rounds_iid, iid_gain,
 plt.plot(rounds_noniid, noniid_gain,
          marker="s", linewidth=2, label="Non-IID")
 
-plt.axhline(0, linestyle="--")  # đường tham chiếu
+plt.axhline(0, linestyle="--") 
 
 plt.title("Model Convergence Speed (Accuracy Gain per Round)")
 plt.xlabel("Communication Round")
