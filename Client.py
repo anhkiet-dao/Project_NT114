@@ -12,6 +12,7 @@ import hashlib
 import time
 import sys
 import pickle
+import torch.nn.functional as F
 
 from torch.utils.data import (
     DataLoader,
@@ -34,11 +35,8 @@ MU = 0.001
 LR = 0.0005
 EPOCHS = 2
 
-TOTAL_CLIENTS = 5
+TOTAL_CLIENTS = 1
 LAMBDA = 1
-
-torch.set_num_threads(8)
-torch.set_num_interop_threads(4)
 
 CACHE = {}
 LAST_FAULTY = set()
@@ -46,8 +44,6 @@ LAST_FAULTY = set()
 # =========================================================
 # MODEL
 # =========================================================
-
-import torch.nn.functional as F
 
 class CNN(nn.Module):
 
@@ -102,7 +98,7 @@ class CNN(nn.Module):
 # DATA LOADER
 # =========================================================
 
-def load_client_data(client_id, split_type="non_iid", batch_size=128):
+def load_client_data(client_id, split_type="non_iid", batch_size=512):
 
     key = f"{split_type}_{client_id}"
 
@@ -160,14 +156,18 @@ def load_client_data(client_id, split_type="non_iid", batch_size=128):
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=2
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True
     )
 
     testloader = DataLoader(
         test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=2
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True
     )
 
     CACHE[key] = (trainloader, testloader)
@@ -216,6 +216,25 @@ def get_faulty_clients(round_num):
             print(f"[Round {round_num}] CẢNH BÁO: Lỗi chưa khắc phục xong, tiếp tục dính lỗi!")
             
     return faulty_clients
+
+def corrupt_parameters(params, round_num):
+    corrupted = []
+    # Độ nhiễu nhỏ và giảm dần theo số round để bảo vệ mô hình 1 client
+    decay_factor = max(0.1, 1 - (round_num / 100)) # Giả định bạn chạy tối đa 100 round
+    current_std = 0.01 * decay_factor
+
+    for p in params:
+        # p đang là numpy array từ self.get_parameters()
+        p_corrupted = p.copy() 
+        
+        # Chỉ làm lỗi ngẫu nhiên 10% số lượng trọng số (tránh hỏng 100% mô hình)
+        mask = np.random.rand(*p.shape) < 0.10
+        noise = np.random.normal(0, current_std, p.shape)
+        
+        p_corrupted[mask] += noise[mask]
+        corrupted.append(p_corrupted)
+        
+    return corrupted
 
 # =========================================================
 # TRAIN
@@ -405,7 +424,10 @@ class FlowerClient(fl.client.NumPyClient):
         is_faulty = self.client_id in faulty_clients
 
         if is_faulty:
-            print(f"⚠ Client {self.client_id} is FAULTY")
+            params = corrupt_parameters(params, round_num)
+            print(f"💣 [Round {round_num}] Sent corrupted update (Markov State: FAULTY)")
+        else:
+            print(f"✅ [Round {round_num}] Sent clean update (Markov State: HEALTHY)")
 
         global_params = [
             torch.from_numpy(p).to(DEVICE)
